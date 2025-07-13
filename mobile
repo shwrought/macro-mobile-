@@ -23,7 +23,7 @@ for i = 1, 5 do
 end
 
 -- Configuración
-local golpeDelay = 0.18          -- ⏱️ Tiempo entre golpes
+local golpeDelay = 0.10          -- ⏱️ Tiempo entre golpes
 local velocidadAnim = 1.0        -- 🎞️ Velocidad visible de la animación
 
 local combo = 0
