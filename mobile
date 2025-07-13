@@ -1,8 +1,7 @@
--- ✅ Totalmente funcional en MOBILE y PC
+-- ✅ Mobile Combat: Golpea 1 vez por tap, sin spam
 
 local player = game.Players.LocalPlayer
 local rs = game:GetService("ReplicatedStorage")
-local run = game:GetService("RunService")
 local input = game:GetService("UserInputService")
 
 local char = player.Character or player.CharacterAdded:Wait()
@@ -13,59 +12,40 @@ local anims = rs:WaitForChild("Animations")
 local events = rs:WaitForChild("Events")
 local punchEvent = events:WaitForChild("Punch")
 
--- 🔄 Cargar animaciones de combate
+-- 🔁 Animaciones de combate
 local punchAnims = {}
 for i = 1, 5 do
 	table.insert(punchAnims, hum:LoadAnimation(anims:WaitForChild("combat" .. i)))
 end
 
 -- ⚙️ CONFIGURACIÓN
-local delayEntreGolpes = 1.5          -- 🔁 Tiempo entre golpes
-local velocidadAnimacion = 1.0         -- 🎞️ Velocidad de animación
-
-local combo = 0
+local velocidadAnim = 1.0           -- 🎞️ Animación visual
+local delayGolpe = 0.8              -- 🕒 Delay mínimo realista
+local combo = 1
 local puedeAtacar = true
-local tocandoPantalla = false
 
--- 🔁 Loop de ataque automático mientras tocas o clickeas
-run.RenderStepped:Connect(function()
-	if tocandoPantalla and puedeAtacar then
-		puedeAtacar = false
+-- 👊 Función para golpear 1 vez
+local function Golpear()
+	if not puedeAtacar then return end
+	puedeAtacar = false
 
-		combo += 1
-		if combo > 5 then combo = 1 end
+	-- Ejecutar animación y golpe
+	local anim = punchAnims[combo]
+	anim:Play(0.1, 1, 0.3)
+	anim:AdjustSpeed(velocidadAnim)
 
-		local anim = punchAnims[combo]
-		anim:Play(0.1, 1, 0.3)
-		anim:AdjustSpeed(velocidadAnimacion)
+	punchEvent:FireServer(0, 0.1, combo)
 
-		-- 👊 Golpe normal (sin carga)
-		punchEvent:FireServer(0, 0.1, combo)
+	combo += 1
+	if combo > 5 then combo = 1 end
 
-		task.delay(delayEntreGolpes, function()
-			puedeAtacar = true
-		end)
-	end
-end)
-
--- 📱 MOBILE: Detectar tap (activar solo durante un frame)
-input.TouchTapInWorld:Connect(function()
-	tocandoPantalla = true
-	task.delay(0.2, function()  -- Solo permite un golpe por tap
-		tocandoPantalla = false
+	-- Cooldown para evitar spam
+	task.delay(delayGolpe, function()
+		puedeAtacar = true
 	end)
-end)
+end
 
--- 🖱️ PC: Mouse click sostenido
-input.InputBegan:Connect(function(inputObj, processed)
-	if processed then return end
-	if inputObj.UserInputType == Enum.UserInputType.MouseButton1 then
-		tocandoPantalla = true
-	end
-end)
-
-input.InputEnded:Connect(function(inputObj)
-	if inputObj.UserInputType == Enum.UserInputType.MouseButton1 then
-		tocandoPantalla = false
-	end
+-- 📱 MOBILE: Detectar toque y golpear 1 vez
+input.TouchTapInWorld:Connect(function()
+	Golpear()
 end)
