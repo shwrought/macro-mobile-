@@ -1,51 +1,31 @@
--- ✅ Mobile Combat: Golpea 1 vez por tap, sin spam
+-- Age of Heroes - AutoClick Toque UltraRápido (Mobile)
+-- Hecho por Adrian (MACRO UI)
 
-local player = game.Players.LocalPlayer
-local rs = game:GetService("ReplicatedStorage")
-local input = game:GetService("UserInputService")
+-- CONFIGURACIÓN
+local clicksPorToque = 7        -- MÁS clics por toque
+local delayEntreClicks = 0.015  -- Delay mínimo seguro (15ms aprox)
 
-local char = player.Character or player.CharacterAdded:Wait()
-local hum = char:WaitForChild("Humanoid")
-local root = char:WaitForChild("HumanoidRootPart")
-
-local anims = rs:WaitForChild("Animations")
-local events = rs:WaitForChild("Events")
-local punchEvent = events:WaitForChild("Punch")
-
--- 🔁 Animaciones de combate
-local punchAnims = {}
-for i = 1, 5 do
-	table.insert(punchAnims, hum:LoadAnimation(anims:WaitForChild("combat" .. i)))
+-- FUNCIONES
+local function simularClick()
+    local virtualUser = game:GetService("VirtualUser")
+    virtualUser:Button1Down(Vector2.new(), workspace.CurrentCamera.CFrame)
+    wait()
+    virtualUser:Button1Up(Vector2.new(), workspace.CurrentCamera.CFrame)
 end
 
--- ⚙️ CONFIGURACIÓN
-local velocidadAnim = 50          -- 🎞️ Animación visual
-local delayGolpe = 0.9              -- 🕒 Delay mínimo realista
-local combo = 1
-local puedeAtacar = true
+-- ACTIVADOR DE TOQUE (MÓVIL)
+game:GetService("UserInputService").TouchStarted:Connect(function()
+    for i = 1, clicksPorToque do
+        task.spawn(simularClick)
+        task.wait(delayEntreClicks)
+    end
+end)
 
--- 👊 Función para golpear 1 vez
-local function Golpear()
-	if not puedeAtacar then return end
-	puedeAtacar = false
-
-	-- Ejecutar animación y golpe
-	local anim = punchAnims[combo]
-	anim:Play(0.1, 1, 0.3)
-	anim:AdjustSpeed(velocidadAnim)
-
-	punchEvent:FireServer(0, 0.1, combo)
-
-	combo += 1
-	if combo > 5 then combo = 1 end
-
-	-- Cooldown para evitar spam
-	task.delay(delayGolpe, function()
-		puedeAtacar = true
-	end)
-end
-
--- 📱 MOBILE: Detectar toque y golpear 1 vez
-input.TouchTapInWorld:Connect(function()
-	Golpear()
+-- NOTIFICACIÓN
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "AutoClick Ultra",
+        Text = "x" .. clicksPorToque .. " por toque (Rápido)",
+        Duration = 2
+    })
 end)
