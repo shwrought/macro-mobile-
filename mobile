@@ -1,70 +1,80 @@
 local player = game.Players.LocalPlayer
-local rs = game:GetService("ReplicatedStorage")
-local run = game:GetService("RunService")
-local input = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
-local function safeWaitFor(obj, name)
-    local ok, res = pcall(function() return obj:WaitForChild(name, 10) end)
-    return ok and res or nil
-end
-
+-- Esperar por personaje
 local char = player.Character or player.CharacterAdded:Wait()
-local hum = safeWaitFor(char, "Humanoid")
-local root = safeWaitFor(char, "HumanoidRootPart")
-if not hum or not root then return warn("❌ No se encontró el personaje.") end
+local humanoid = char:WaitForChild("Humanoid")
+local root = char:WaitForChild("HumanoidRootPart")
 
-local anims = safeWaitFor(rs, "Animations")
-local events = safeWaitFor(rs, "Events")
-local punchEvent = safeWaitFor(events, "Punch")
-if not anims or not punchEvent then return warn("❌ Recursos no encontrados.") end
+-- Recursos del juego
+local Animations = ReplicatedStorage:WaitForChild("Animations")
+local Events = ReplicatedStorage:WaitForChild("Events")
+local PunchEvent = Events:WaitForChild("Punch")
 
+-- Cargar animaciones de combate
 local punchAnims = {}
 for i = 1, 5 do
-    local anim = safeWaitFor(anims, "combat" .. i)
-    if anim then table.insert(punchAnims, hum:LoadAnimation(anim)) end
+	local anim = Animations:FindFirstChild("combat" .. i)
+	if anim then
+		table.insert(punchAnims, humanoid:LoadAnimation(anim))
+	end
 end
-if #punchAnims == 0 then return warn("❌ No se cargaron animaciones.") end
 
--- CONFIGURACIÓN
-local delayEntreGolpes = 0.18       -- velocidad entre golpes
-local velocidadAnimacion = 1.0      -- velocidad de animación visible
+-- Configuración
+local golpeDelay = 0.18          -- ⏱️ Tiempo entre golpes
+local velocidadAnim = 1.0        -- 🎞️ Velocidad visible de la animación
 
 local combo = 0
-local puedeAtacar = true
-local tocandoPantalla = false
+local puedeGolpear = true
+local tocar = false  -- true cuando el jugador hace TAP o clic
 
-run.RenderStepped:Connect(function()
-    if tocandoPantalla and puedeAtacar then
-        puedeAtacar = false
-        combo += 1
-        if combo > 5 then combo = 1 end
+-- Función para atacar
+local function atacar()
+	if puedeGolpear and tocar then
+		puedeGolpear = false
+		combo += 1
+		if combo > 5 then combo = 1 end
 
-        local anim = punchAnims[combo]
-        anim:Play(0.1, 1, 0.3)
-        anim:AdjustSpeed(velocidadAnimacion)
+		-- Ejecutar animación
+		local anim = punchAnims[combo]
+		if anim then
+			anim:Play(0.1, 1, 0.3)
+			anim:AdjustSpeed(velocidadAnim)
+		end
 
-        punchEvent:FireServer(0, 0.1, combo)
+		-- 🔹 Golpe normal (no cargado)
+		PunchEvent:FireServer(0, 0.1, combo)
 
-        task.delay(delayEntreGolpes, function()
-            puedeAtacar = true
-        end)
-    end
+		task.delay(golpeDelay, function()
+			puedeGolpear = true
+			atacar() -- Reintenta si aún está tocando
+		end)
+	end
+end
+
+-- Mobile: Tap en pantalla
+UserInputService.TouchStarted:Connect(function()
+	tocar = true
+	atacar()
 end)
 
--- Detectar clicks o taps
-input.InputBegan:Connect(function(io, gp)
-    if gp then return end
-    if io.UserInputType == Enum.UserInputType.MouseButton1 then
-        tocandoPantalla = true
-    end
+UserInputService.TouchEnded:Connect(function()
+	tocar = false
 end)
 
-input.InputEnded:Connect(function(io)
-    if io.UserInputType == Enum.UserInputType.MouseButton1 then
-        tocandoPantalla = false
-    end
+-- PC: Clic izquierdo
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		tocar = true
+		atacar()
+	end
 end)
 
-input.TouchTapInWorld:Connect(function(_, state)
-    tocandoPantalla = state
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		tocar = false
+	end
 end)
