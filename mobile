@@ -19,7 +19,7 @@ for i = 1, 5 do
 end
 
 -- ⚙️ CONFIGURACIÓN
-local velocidadAnim = 15           -- 🎞️ Animación visual
+local velocidadAnim = 25           -- 🎞️ Animación visual
 local delayGolpe = 1              -- 🕒 Delay mínimo realista
 local combo = 1
 local puedeAtacar = true
