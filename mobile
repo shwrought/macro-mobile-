@@ -1,29 +1,33 @@
--- ✅ Ejecuta esto en LocalScript o executor (Hydrogen/Fluxus mobile)
+-- ✅ Script compatible con Hydrogen / Fluxus MOBILE
 
 local Player = game.Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
-local Events = ReplicatedStorage:WaitForChild("Events")
-local PunchEvent = Events:WaitForChild("Punch")
+local PunchEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Punch")
 
 local canPunch = true
-local delayBetweenPunches = 1 -- Puedes bajar hasta 0.08 máximo sin errores
+local delayBetweenPunches = 0.18  -- 🕒 Tiempo realista entre golpes
 
--- 💥 Solo 1 golpe por tap, con delay personalizado
 local function Punch()
 	if not canPunch then return end
 	canPunch = false
 
-	-- Enviar golpe normal
-	PunchEvent:FireServer(0, 0.1, 1)
+	-- Solo 1 golpe normal por tap
+	local args = {
+		[1] = 0,     -- posición relativa
+		[2] = 0.1,   -- alcance
+		[3] = 1      -- tipo de combo (puedes usar 1 a 5)
+	}
+	PunchEvent:FireServer(unpack(args))
 
+	-- Cooldown simulado como si fuera humano
 	task.delay(delayBetweenPunches, function()
 		canPunch = true
 	end)
 end
 
--- 📱 Solo Mobile: Golpear al tocar la pantalla
+-- 📱 Mobile tap: golpea al tocar el mundo
 UserInputService.TouchTapInWorld:Connect(function()
 	Punch()
 end)
