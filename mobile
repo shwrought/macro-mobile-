@@ -1,80 +1,65 @@
 local player = game.Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+local rs = game:GetService("ReplicatedStorage")
+local run = game:GetService("RunService")
+local input = game:GetService("UserInputService")
 
--- Esperar por personaje
 local char = player.Character or player.CharacterAdded:Wait()
-local humanoid = char:WaitForChild("Humanoid")
+local hum = char:WaitForChild("Humanoid")
 local root = char:WaitForChild("HumanoidRootPart")
 
--- Recursos del juego
-local Animations = ReplicatedStorage:WaitForChild("Animations")
-local Events = ReplicatedStorage:WaitForChild("Events")
-local PunchEvent = Events:WaitForChild("Punch")
+local anims = rs:WaitForChild("Animations")
+local events = rs:WaitForChild("Events")
+local punchEvent = events:WaitForChild("Punch")
 
--- Cargar animaciones de combate
+-- 🔄 Cargar animaciones de combate
 local punchAnims = {}
 for i = 1, 5 do
-	local anim = Animations:FindFirstChild("combat" .. i)
-	if anim then
-		table.insert(punchAnims, humanoid:LoadAnimation(anim))
-	end
+	table.insert(punchAnims, hum:LoadAnimation(anims:WaitForChild("combat" .. i)))
 end
 
--- Configuración
-local golpeDelay = 0.10          -- ⏱️ Tiempo entre golpes
-local velocidadAnim = 1.0        -- 🎞️ Velocidad visible de la animación
+-- ⚙️ CONFIGURACIÓN PERSONALIZADA
+local delayEntreGolpes = 0.18       -- 💥 Golpes rápidos
+local velocidadAnimacion = 1.0      -- 🎞️ Animación normal/realista
 
 local combo = 0
-local puedeGolpear = true
-local tocar = false  -- true cuando el jugador hace TAP o clic
+local puedeAtacar = true
+local tocandoPantalla = false
 
--- Función para atacar
-local function atacar()
-	if puedeGolpear and tocar then
-		puedeGolpear = false
+-- 🔁 Loop de ataque automático si estás tocando
+run.RenderStepped:Connect(function()
+	if tocandoPantalla and puedeAtacar then
+		puedeAtacar = false
+
 		combo += 1
 		if combo > 5 then combo = 1 end
 
-		-- Ejecutar animación
 		local anim = punchAnims[combo]
-		if anim then
-			anim:Play(0.1, 1, 0.3)
-			anim:AdjustSpeed(velocidadAnim)
-		end
+		anim:Play(0.1, 1, 0.3)
+		anim:AdjustSpeed(velocidadAnimacion)
 
-		-- 🔹 Golpe normal (no cargado)
-		PunchEvent:FireServer(0, 0.1, combo)
+		punchEvent:FireServer(0.4, 0.1, combo)
 
-		task.delay(golpeDelay, function()
-			puedeGolpear = true
-			atacar() -- Reintenta si aún está tocando
+		task.delay(delayEntreGolpes, function()
+			puedeAtacar = true
 		end)
 	end
-end
-
--- Mobile: Tap en pantalla
-UserInputService.TouchStarted:Connect(function()
-	tocar = true
-	atacar()
 end)
 
-UserInputService.TouchEnded:Connect(function()
-	tocar = false
+-- 📱 Soporte para móvil (detectar toques)
+input.TouchTapInWorld:Connect(function(pos, state)
+	tocandoPantalla = state
 end)
 
--- PC: Clic izquierdo
-UserInputService.InputBegan:Connect(function(input, processed)
+-- 🖱️ Soporte para PC (mouse click)
+input.InputBegan:Connect(function(inputObj, processed)
 	if processed then return end
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		tocar = true
-		atacar()
+	if inputObj.UserInputType == Enum.UserInputType.MouseButton1 then
+		tocandoPantalla = true
 	end
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		tocar = false
+input.InputEnded:Connect(function(inputObj)
+	if inputObj.UserInputType == Enum.UserInputType.MouseButton1 then
+		tocandoPantalla = false
 	end
 end)
