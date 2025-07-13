@@ -3,26 +3,27 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 local player = Players.LocalPlayer
-local Events = ReplicatedStorage:WaitForChild("Events")
-local PunchEvent = Events:WaitForChild("Punch")
+local PunchEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Punch")
 
 local tocando = false
 local puedeGolpear = true
-local golpeDelay = 0.12  -- Puedes ajustar este valor para más velocidad o menos
+local golpeDelay = 0.07 -- ⚡ Velocidad ultra rápida
 
 local function golpear()
 	if not puedeGolpear or not tocando then return end
 	puedeGolpear = false
 
-	-- 🔁 Golpe simple como pediste
-	local args = {
-		[1] = 0,
-		[2] = 0.1,
-		[3] = 1
-	}
-	PunchEvent:FireServer(unpack(args))
+	-- 🔁 Golpe normal + golpes extra
+	for i = 1, 3 do  -- Puedes subir este número para más golpes (máximo 5 recomendado)
+		local args = {
+			[1] = 0,
+			[2] = 0.1,
+			[3] = 1
+		}
+		PunchEvent:FireServer(unpack(args))
+		task.wait(0.03) -- Pequeño delay entre golpes extra
+	end
 
-	-- Delay realista
 	task.delay(golpeDelay, function()
 		puedeGolpear = true
 		if tocando then
@@ -31,12 +32,13 @@ local function golpear()
 	end)
 end
 
--- 📱 Solo Mobile: Tap en pantalla para golpear
+-- 📱 Mobile: Tap para empezar a golpear rápido
 UserInputService.TouchStarted:Connect(function()
 	tocando = true
 	golpear()
 end)
 
+-- 📱 Mobile: Soltar pantalla detiene los golpes
 UserInputService.TouchEnded:Connect(function()
 	tocando = false
 end)
