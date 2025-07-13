@@ -1,33 +1,66 @@
--- ✅ Script compatible con Hydrogen / Fluxus MOBILE
+local player = game.Players.LocalPlayer
+local rs = game:GetService("ReplicatedStorage")
+local run = game:GetService("RunService")
+local input = game:GetService("UserInputService")
 
-local Player = game.Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
+local char = player.Character or player.CharacterAdded:Wait()
+local hum = char:WaitForChild("Humanoid")
+local root = char:WaitForChild("HumanoidRootPart")
 
-local PunchEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Punch")
+local anims = rs:WaitForChild("Animations")
+local events = rs:WaitForChild("Events")
+local punchEvent = events:WaitForChild("Punch")
 
-local canPunch = true
-local delayBetweenPunches = 1.6 -- 🕒 Tiempo realista entre golpes
-
-local function Punch()
-	if not canPunch then return end
-	canPunch = false
-
-	-- Solo 1 golpe normal por tap
-	local args = {
-		[1] = 0,     -- posición relativa
-		[2] = 0.1,   -- alcance
-		[3] = 1      -- tipo de combo (puedes usar 1 a 5)
-	}
-	PunchEvent:FireServer(unpack(args))
-
-	-- Cooldown simulado como si fuera humano
-	task.delay(delayBetweenPunches, function()
-		canPunch = true
-	end)
+-- 🔄 Cargar animaciones de combate
+local punchAnims = {}
+for i = 1, 5 do
+	table.insert(punchAnims, hum:LoadAnimation(anims:WaitForChild("combat" .. i)))
 end
 
--- 📱 Mobile tap: golpea al tocar el mundo
-UserInputService.TouchTapInWorld:Connect(function()
-	Punch()
+-- ⚙️ CONFIGURACIÓN PERSONALIZADA
+local delayEntreGolpes = 0.18       -- 💥 Golpes rápidos
+local velocidadAnimacion = 1.0      -- 🎞️ Animación normal/realista
+
+local combo = 0
+local puedeAtacar = true
+local tocandoPantalla = false
+
+-- 🔁 Loop de ataque automático si estás tocando
+run.RenderStepped:Connect(function()
+	if tocandoPantalla and puedeAtacar then
+		puedeAtacar = false
+
+		combo += 1
+		if combo > 5 then combo = 1 end
+
+		local anim = punchAnims[combo]
+		anim:Play(0.1, 1, 0.3)
+		anim:AdjustSpeed(velocidadAnimacion)
+
+		-- ✅ Golpe normal (sin carga)
+		punchEvent:FireServer(0, 0.1, combo)
+
+		task.delay(delayEntreGolpes, function()
+			puedeAtacar = true
+		end)
+	end
+end)
+
+-- 📱 Soporte para móvil (detectar toques)
+input.TouchTapInWorld:Connect(function(pos, state)
+	tocandoPantalla = state
+end)
+
+-- 🖱️ Soporte para PC (mouse click)
+input.InputBegan:Connect(function(inputObj, processed)
+	if processed then return end
+	if inputObj.UserInputType == Enum.UserInputType.MouseButton1 then
+		tocandoPantalla = true
+	end
+end)
+
+input.InputEnded:Connect(function(inputObj)
+	if inputObj.UserInputType == Enum.UserInputType.MouseButton1 then
+		tocandoPantalla = false
+	end
 end)
