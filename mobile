@@ -7,7 +7,7 @@ local UserInputService = game:GetService("UserInputService")
 local PunchEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Punch")
 
 local canPunch = true
-local delayBetweenPunches = 0.05  -- 🕒 Tiempo realista entre golpes
+local delayBetweenPunches = 0.10  -- 🕒 Tiempo realista entre golpes
 
 local function Punch()
 	if not canPunch then return end
