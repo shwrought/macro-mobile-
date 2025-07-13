@@ -1,48 +1,28 @@
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-
-local Animations = ReplicatedStorage:WaitForChild("Animations")
 local Events = ReplicatedStorage:WaitForChild("Events")
 local PunchEvent = Events:WaitForChild("Punch")
 
--- Animaciones de combate
-local punchAnims = {}
-for i = 1, 5 do
-	local animObj = Animations:FindFirstChild("combat" .. i)
-	if animObj then
-		local anim = humanoid:LoadAnimation(animObj)
-		table.insert(punchAnims, anim)
-	end
-end
-
--- Configuración
-local combo = 0
-local golpeDelay = 0.16  -- Delay entre golpes
-local animSpeed = 1.0    -- Velocidad de animación
-local puedeGolpear = true
 local tocando = false
+local puedeGolpear = true
+local golpeDelay = 0.12  -- Puedes ajustar este valor para más velocidad o menos
 
--- Función de golpe
 local function golpear()
 	if not puedeGolpear or not tocando then return end
-
 	puedeGolpear = false
-	combo = (combo % #punchAnims) + 1
 
-	local anim = punchAnims[combo]
-	if anim then
-		anim:Play(0.1, 1, 0.3)
-		anim:AdjustSpeed(animSpeed)
-	end
+	-- 🔁 Golpe simple como pediste
+	local args = {
+		[1] = 0,
+		[2] = 0.1,
+		[3] = 1
+	}
+	PunchEvent:FireServer(unpack(args))
 
-	-- Enviar evento de golpe (sin carga)
-	PunchEvent:FireServer(0, 0.1, combo)
-
+	-- Delay realista
 	task.delay(golpeDelay, function()
 		puedeGolpear = true
 		if tocando then
@@ -51,7 +31,7 @@ local function golpear()
 	end)
 end
 
--- SOLO Mobile: Tap en pantalla para golpear
+-- 📱 Solo Mobile: Tap en pantalla para golpear
 UserInputService.TouchStarted:Connect(function()
 	tocando = true
 	golpear()
