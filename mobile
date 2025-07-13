@@ -20,7 +20,7 @@ for i = 1, 5 do
 end
 
 -- ⚙️ CONFIGURACIÓN
-local delayEntreGolpes = 1.2           -- 🔁 Tiempo entre golpes
+local delayEntreGolpes = 1.5          -- 🔁 Tiempo entre golpes
 local velocidadAnimacion = 1.0         -- 🎞️ Velocidad de animación
 
 local combo = 0
