@@ -1,25 +1,16 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
--- Acceso a animaciones y eventos
 local Animations = ReplicatedStorage:WaitForChild("Animations")
 local Events = ReplicatedStorage:WaitForChild("Events")
 local PunchEvent = Events:WaitForChild("Punch")
 
--- Configuración
-local golpeDelay = 0.18
-local velocidadAnim = 1.0
-local combo = 0
-local puedeGolpear = true
-local tocando = false
-
--- Cargar animaciones normales de combate
+-- Animaciones de combate
 local punchAnims = {}
 for i = 1, 5 do
 	local animObj = Animations:FindFirstChild("combat" .. i)
@@ -29,54 +20,43 @@ for i = 1, 5 do
 	end
 end
 
--- Función de golpe
-local function hacerGolpe()
-	if not puedeGolpear or not tocando then return end
-	puedeGolpear = false
+-- Configuración
+local combo = 0
+local golpeDelay = 0.16  -- Delay entre golpes
+local animSpeed = 1.0    -- Velocidad de animación
+local puedeGolpear = true
+local tocando = false
 
-	combo += 1
-	if combo > #punchAnims then
-		combo = 1
-	end
+-- Función de golpe
+local function golpear()
+	if not puedeGolpear or not tocando then return end
+
+	puedeGolpear = false
+	combo = (combo % #punchAnims) + 1
 
 	local anim = punchAnims[combo]
 	if anim then
 		anim:Play(0.1, 1, 0.3)
-		anim:AdjustSpeed(velocidadAnim)
+		anim:AdjustSpeed(animSpeed)
 	end
 
-	-- Golpe normal, sin carga
+	-- Enviar evento de golpe (sin carga)
 	PunchEvent:FireServer(0, 0.1, combo)
 
 	task.delay(golpeDelay, function()
 		puedeGolpear = true
 		if tocando then
-			hacerGolpe()
+			golpear()
 		end
 	end)
 end
 
--- 📱 MOBILE
+-- SOLO Mobile: Tap en pantalla para golpear
 UserInputService.TouchStarted:Connect(function()
 	tocando = true
-	hacerGolpe()
+	golpear()
 end)
 
 UserInputService.TouchEnded:Connect(function()
 	tocando = false
-end)
-
--- 🖱️ PC
-UserInputService.InputBegan:Connect(function(input, gpe)
-	if gpe then return end
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		tocando = true
-		hacerGolpe()
-	end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		tocando = false
-	end
 end)
