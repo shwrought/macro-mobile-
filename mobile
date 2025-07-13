@@ -1,3 +1,5 @@
+-- ✅ Totalmente funcional en MOBILE y PC
+
 local player = game.Players.LocalPlayer
 local rs = game:GetService("ReplicatedStorage")
 local run = game:GetService("RunService")
@@ -17,15 +19,15 @@ for i = 1, 5 do
 	table.insert(punchAnims, hum:LoadAnimation(anims:WaitForChild("combat" .. i)))
 end
 
--- ⚙️ CONFIGURACIÓN PERSONALIZADA
-local delayEntreGolpes = 1.2       -- 💥 Golpes rápidos
-local velocidadAnimacion = 1.0      -- 🎞️ Animación normal/realista
+-- ⚙️ CONFIGURACIÓN
+local delayEntreGolpes = 1.2           -- 🔁 Tiempo entre golpes
+local velocidadAnimacion = 1.0         -- 🎞️ Velocidad de animación
 
 local combo = 0
 local puedeAtacar = true
 local tocandoPantalla = false
 
--- 🔁 Loop de ataque automático si estás tocando
+-- 🔁 Loop de ataque automático mientras tocas o clickeas
 run.RenderStepped:Connect(function()
 	if tocandoPantalla and puedeAtacar then
 		puedeAtacar = false
@@ -37,7 +39,7 @@ run.RenderStepped:Connect(function()
 		anim:Play(0.1, 1, 0.3)
 		anim:AdjustSpeed(velocidadAnimacion)
 
-		-- ✅ Golpe normal (sin carga)
+		-- 👊 Golpe normal (sin carga)
 		punchEvent:FireServer(0, 0.1, combo)
 
 		task.delay(delayEntreGolpes, function()
@@ -46,12 +48,15 @@ run.RenderStepped:Connect(function()
 	end
 end)
 
--- 📱 Soporte para móvil (detectar toques)
-input.TouchTapInWorld:Connect(function(pos, state)
-	tocandoPantalla = state
+-- 📱 MOBILE: Detectar tap (activar solo durante un frame)
+input.TouchTapInWorld:Connect(function()
+	tocandoPantalla = true
+	task.delay(0.2, function()  -- Solo permite un golpe por tap
+		tocandoPantalla = false
+	end)
 end)
 
--- 🖱️ Soporte para PC (mouse click)
+-- 🖱️ PC: Mouse click sostenido
 input.InputBegan:Connect(function(inputObj, processed)
 	if processed then return end
 	if inputObj.UserInputType == Enum.UserInputType.MouseButton1 then
