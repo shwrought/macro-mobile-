@@ -1,192 +1,29 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("age of heroes fight helper", "GrapeTheme")
+-- ✅ Ejecuta esto en LocalScript o executor (Hydrogen/Fluxus mobile)
 
-local Tab = Window:NewTab("main")
+local Player = game.Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
-local Section = Tab:NewSection("tools to help you fight")
+local Events = ReplicatedStorage:WaitForChild("Events")
+local PunchEvent = Events:WaitForChild("Punch")
 
+local canPunch = true
+local delayBetweenPunches = 0.12 -- Puedes bajar hasta 0.08 máximo sin errores
 
+-- 💥 Solo 1 golpe por tap, con delay personalizado
+local function Punch()
+	if not canPunch then return end
+	canPunch = false
 
+	-- Enviar golpe normal
+	PunchEvent:FireServer(0, 0.1, 1)
 
-
-Section:NewButton("inf yield", "opens inf yield", function()
-  loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
-end)
-
-Section:NewKeybind("normal punch ", "to change it press the button and press the key you want it to ", Enum.KeyCode.G, function()
-    local args = {
-
-
-
-    [1] = 0,
-    [2] = 0.1,
-    [3] = 1
-}
-
-game:GetService("ReplicatedStorage").Events.Punch:FireServer(unpack(args))
-
-end)
-
-
-
-
-
-local args = {
-
-
-
-    [1] = 0.1,
-    [2] = 0.1,
-    [3] = 1
-}
-
-game:GetService("ReplicatedStorage").Events.Punch:FireServer(unpack(args))
-
-
-Section:NewKeybind("heavy punch ", "change it to whatever u like just press it and press the key you want it on", Enum.KeyCode.F, function()
-local args = {
-    [1] = 0.4,
-    [2] = 0.1,
-    [3] = 1
-}
-
-game:GetService("ReplicatedStorage").Events.Punch:FireServer(unpack(args))
-
-
-end)
-
-
-
-
-Section:NewKeybind("K to open/close", "opens/close it with K", Enum.KeyCode.K, function()
-    Library:ToggleUI()
-end)
-
---aap
-
-local Tab = Window:NewTab("TP")
-
-local Section = Tab:NewSection("TPs above the place")
-
-Section:NewButton("tps above mid (be in flight/webs) ", "be in flight or webs when tp otherwise u ragdoll", function()
-   game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-392.009216, 672.115356, 267.762726, -0.0532506332, -0.983429313, 0.173295051, -2.4716293e-08, 0.173541278, 0.984826624, -0.998581171, 0.0524426326, -0.0092412075)
-end)
-
-
-Section:NewButton("tps above motel (be in flight/webs ", "be in flight or webs when tp otherwise u ragdoll", function()
-    
-
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1744.13, 965.383, -1356.94)
-    
-end)
-
-
-Section:NewButton("tps to maid cafe (be in flight/webs ", "be in flight or webs when tp otherwise u ragdoll", function()
-    
-
-      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1357.88928, 197.346771, 189.589935, -0.864663363, 0, -0.50235182, 0, 1, 0, 0.50235182, 0, -0.864663363)
-    
-end)
-
-
-local Tab = Window:NewTab("metalskin")
-
-local Section = Tab:NewSection("4th metal  slot for free")
-
-Section:NewButton("takes metal skin ON", "takes it on", function()
-    local args = {
-    [1] = "metalSkin",
-    [2] = true
-}
-
-game:GetService("ReplicatedStorage").Events.Transform:FireServer(unpack(args))
-end)
-
-
-Section:NewButton("takes metal skin OFF", "takes it OFF", function()
-    local args = {
-    [1] = "metalSkin",
-    [2] = false
-}
-
-game:GetService("ReplicatedStorage").Events.Transform:FireServer(unpack(args))
-end)
-
-local Tab = Window:NewTab("godmode")
-
-local Section = Tab:NewSection("be in safe zone when using it")
-
-
-
-
-Section:NewButton("godmode", "Be in safe zone otherwise it wont work", function()
-    local removeNametags = false -- remove custom billboardgui nametags from hrp, could trigger anticheat
-
-local plr = game:GetService("Players").LocalPlayer
-local character = plr.Character
-local hrp = character.HumanoidRootPart
-local old = hrp.CFrame
-
-if not character:FindFirstChild("LowerTorso") or character.PrimaryPart ~= hrp then
-return print("unsupported")
+	task.delay(delayBetweenPunches, function()
+		canPunch = true
+	end)
 end
 
-if removeNametags then
-local tag = hrp:FindFirstChildOfClass("BillboardGui")
-if tag then tag:Destroy() end
-
-hrp.ChildAdded:Connect(function(item)
-if item:IsA("BillboardGui") then
-task.wait()
-item:Destroy()
-end
-end)
-end
-
-local newroot = character.LowerTorso.Root:Clone()
-hrp.Parent = workspace
-character.PrimaryPart = hrp
-character:MoveTo(Vector3.new(old.X,9e9,old.Z))
-hrp.Parent = character
-task.wait(0.5)
-newroot.Parent = hrp
-hrp.CFrame = old
-end)
-
-local Tab = Window:NewTab("rapid punch")
-local Section = Tab:NewSection("rapid punches IG")
-
-Section:NewKeybind("heavy punch ", "change it to whatever u like just press it and press the key you want it on", Enum.KeyCode.Z, function()
-local args = {
-    [1] = 0.4,
-    [2] = 0.1,
-    [3] = 1
-}
-
-game:GetService("ReplicatedStorage").Events.Punch:FireServer(unpack(args))
-
-Section:NewKeybind("heavy punch ", "change it to whatever u like just press it and press the key you want it on", Enum.KeyCode.Z, function()
-local args = {
-    [1] = 0.4,
-    [2] = 0.1,
-    [3] = 1
-}
-
-game:GetService("ReplicatedStorage").Events.Punch:FireServer(unpack(args))
-
-end)
-end)
-
-
-local Tab = Window:NewTab("anti grab")
-local Section = Tab:NewSection("leave to unequip ")
-
-Section:NewButton("anti grab", "cant unequip", function()
- while(true)do
-              local evento = game:GetService("ReplicatedStorage").Events.ToggleTelekinesis;
-              if game.Players.LocalPlayer.Character then
-                evento:InvokeServer(game.Workspace.Camera.CFrame.LookVector, false, game.Players.LocalPlayer.Character); 
-              end
-              wait()   
-              end
+-- 📱 Solo Mobile: Golpear al tocar la pantalla
+UserInputService.TouchTapInWorld:Connect(function()
+	Punch()
 end)
