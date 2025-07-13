@@ -1,30 +1,48 @@
-local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
+-- 🔧 Crear Tool manualmente
+local tool = Instance.new("Tool")
+tool.Name = "MobilePuncher"
+tool.RequiresHandle = false
+tool.Parent = game.Players.LocalPlayer.Backpack
 
-local player = Players.LocalPlayer
-local PunchEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Punch")
+-- 🧱 Crear botón visible en pantalla
+local screenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+screenGui.Name = "MobileClickGui"
 
+local button = Instance.new("TextButton")
+button.Parent = screenGui
+button.Size = UDim2.new(0, 150, 0, 50)
+button.Position = UDim2.new(1, -160, 1, -60)
+button.Text = "AutoHit: OFF"
+button.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Font = Enum.Font.GothamBold
+button.TextSize = 18
+button.ZIndex = 5
+
+-- 🔄 Estado
 local tocando = false
+local activo = false
 local puedeGolpear = true
-local golpeDelay = 0.07 -- ⚡ Velocidad ultra rápida
+local delayGolpe = 0.07
 
+local PunchEvent = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Punch")
+
+-- ⚔️ Golpeador rápido con golpes extra
 local function golpear()
-	if not puedeGolpear or not tocando then return end
+	if not activo or not tocando or not puedeGolpear then return end
 	puedeGolpear = false
 
-	-- 🔁 Golpe normal + golpes extra
-	for i = 1, 3 do  -- Puedes subir este número para más golpes (máximo 5 recomendado)
+	for i = 1, 3 do  -- Golpes extra
 		local args = {
 			[1] = 0,
 			[2] = 0.1,
 			[3] = 1
 		}
 		PunchEvent:FireServer(unpack(args))
-		task.wait(0.03) -- Pequeño delay entre golpes extra
+		task.wait(0.03)
 	end
 
-	task.delay(golpeDelay, function()
+	task.delay(delayGolpe, function()
 		puedeGolpear = true
 		if tocando then
 			golpear()
@@ -32,13 +50,39 @@ local function golpear()
 	end)
 end
 
--- 📱 Mobile: Tap para empezar a golpear rápido
-UserInputService.TouchStarted:Connect(function()
-	tocando = true
-	golpear()
+-- 🎮 Botón en pantalla: activar/desactivar
+button.MouseButton1Click:Connect(function()
+	activo = not activo
+	if activo then
+		button.Text = "AutoHit: ON"
+		button.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+	else
+		button.Text = "AutoHit: OFF"
+		button.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+	end
 end)
 
--- 📱 Mobile: Soltar pantalla detiene los golpes
-UserInputService.TouchEnded:Connect(function()
+-- 📱 Mobile: Tap en pantalla para golpear si activado
+game:GetService("UserInputService").TouchStarted:Connect(function()
+	tocando = true
+	if activo then
+		golpear()
+	end
+end)
+
+game:GetService("UserInputService").TouchEnded:Connect(function()
 	tocando = false
+end)
+
+-- 🛠️ Tool (opcional): cuando se equipa activa golpeo
+tool.Equipped:Connect(function()
+	activo = true
+	button.Text = "AutoHit: ON"
+	button.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+end)
+
+tool.Unequipped:Connect(function()
+	activo = false
+	button.Text = "AutoHit: OFF"
+	button.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
 end)
