@@ -18,7 +18,7 @@ for i = 1, 5 do
 end
 
 -- ⚙️ CONFIGURACIÓN PERSONALIZADA
-local delayEntreGolpes = 0.18       -- 💥 Golpes rápidos
+local delayEntreGolpes = 1.2       -- 💥 Golpes rápidos
 local velocidadAnimacion = 1.0      -- 🎞️ Animación normal/realista
 
 local combo = 0
