@@ -2,7 +2,7 @@
 -- Hecho por Adrian (MACRO UI)
 
 -- CONFIGURACIÓN
-local clicksPorToque = 7        -- MÁS clics por toque
+local clicksPorToque = 1        -- MÁS clics por toque
 local delayEntreClicks = 0.015  -- Delay mínimo seguro (15ms aprox)
 
 -- FUNCIONES
